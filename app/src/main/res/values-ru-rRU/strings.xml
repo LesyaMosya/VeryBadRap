@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Очень плохой рэп</string>
+    <string name="start_btn">Начать игру</string>
+    <string name="rules_btn">Правила игры</string>
+    <string name="exit_btn">Выйти</string>
+</resources>
