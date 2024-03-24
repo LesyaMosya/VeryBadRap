@@ -18,13 +18,15 @@ import androidx.core.view.WindowCompat
 private val DarkColorScheme = darkColorScheme(
     onBackground = Yellow,
     onSurface = YellowLight,
-    onTertiary = Brown
+    onTertiary = Brown,
+    onPrimary = Highlighting
 )
 
 private val LightColorScheme = lightColorScheme(
     onBackground = Yellow,
     onSurface = YellowLight,
-    onTertiary = Brown
+    onTertiary = Brown,
+    onPrimary = Highlighting
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Very bad rap</string>
-    <string name="start_btn">Start</string>
-    <string name="rules_btn">Rules</string>
+    <string name="start">Start</string>
+    <string name="training">Training</string>
+    <string name="rules">Rules</string>
     <string name="exit_btn">Exit</string>
+    <string name="round">Round</string>
+    <string name="teams">Teams</string>
 </resources>
