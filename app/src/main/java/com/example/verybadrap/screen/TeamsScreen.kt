@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,12 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.verybadrap.viewmodel.Event
 import com.example.verybadrap.R
-import com.example.verybadrap.model.Team
 import com.example.verybadrap.screen.destinations.RoundScreenDestination
 import com.example.verybadrap.viewmodel.RoundsViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import javax.annotation.Nullable
 
 @Destination
 @Composable
@@ -100,25 +99,42 @@ fun LoadTeams(
 fun AddTeam(
     roundsViewModel: RoundsViewModel
 ) {
-    val listTitle = listOf("ОЗОРНЫЕ БЕЛКИ", "ДИКИЕ ВОЛКИ", "СМЕШАРИКИ", "ФИКСИКИ", "ГУАПЧИЧИ")
+    val listTitle = listOf("СМЕШАРИКИ", "ФИКСИКИ", "ГУАПЧИЧИ")
     var i = 0
+
+    val colorBgd : Color
+    val colorBorder : Color
+    val plus : Int
+
+    if (!roundsViewModel.ifFullListOfTeams.value) {
+        colorBgd = MaterialTheme.colorScheme.onSurface
+        colorBorder = MaterialTheme.colorScheme.onTertiary
+        plus = R.drawable.add_team_btn
+    } else {
+        colorBgd = MaterialTheme.colorScheme.onSecondaryContainer
+        colorBorder = MaterialTheme.colorScheme.onTertiaryContainer
+        plus = R.drawable.add_team_blocked_btn
+    }
+
 
     Box(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(15.dp))
-            .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(15.dp))
+            .background(colorBgd, RoundedCornerShape(20.dp))
+            .border(4.dp, colorBorder, RoundedCornerShape(20.dp))
             .padding(10.dp, 5.dp)
             .size(350.dp, 80.dp)
             .clickable
             {
-                roundsViewModel.createEvent(Event.AddTeam(listTitle[i]))
-                if (i < 5) i++
-                else i=0
+                if (!roundsViewModel.ifFullListOfTeams.value) {
+                    roundsViewModel.createEvent(Event.AddTeam(listTitle[i]))
+                    if (i < 2) i++
+                    else i = 0
+                }
             },
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(R.drawable.add_team_btn),
+            painter = painterResource(plus),
             contentDescription = "NEXT",
             modifier = Modifier
                 .size(60.dp)

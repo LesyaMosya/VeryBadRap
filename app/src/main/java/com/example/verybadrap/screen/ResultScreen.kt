@@ -22,25 +22,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.verybadrap.R
 import com.example.verybadrap.screen.destinations.RoundScreenDestination
-import com.example.verybadrap.ui.theme.VeryBadRapTheme
-import com.example.verybadrap.viewmodel.Event
 import com.example.verybadrap.viewmodel.RoundsViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 
 @Destination
 @Composable
@@ -75,14 +68,14 @@ fun OutputRating(
                 .fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(50.dp))
 
         Box(modifier = Modifier.weight(5f))
         {
             OutputScore(roundsViewModel)
         }
 
-        NextRound(navigator, roundsViewModel)
+        NextRound(navigator)
     }
 }
 
@@ -94,12 +87,13 @@ fun OutputScore(
     Column (
         modifier = Modifier.verticalScroll(rememberScrollState())
     ) {
+        teams.sortByDescending { it.score }
         for (team in teams) {
             Row(
                 modifier = Modifier
                     .size(350.dp, 90.dp)
-                    .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(15.dp))
-                    .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(15.dp))
+                    .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(20.dp))
+                    .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(20.dp))
                     .padding(20.dp, 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -127,11 +121,9 @@ fun OutputScore(
 
 @Composable
 fun NextRound(
-    navigator: DestinationsNavigator,
-    roundsViewModel: RoundsViewModel
+    navigator: DestinationsNavigator
 ) {
-    Box(
-    ) {
+    Box {
         Image(
             painter = painterResource(R.drawable.next_btn),
             contentDescription = "STATE",
@@ -139,7 +131,6 @@ fun NextRound(
                 .size(80.dp)
                 .clickable
                 {
-                    roundsViewModel.createEvent(Event.NextRound)
                     navigator.navigate(RoundScreenDestination)
                 }
         )
@@ -168,7 +159,7 @@ fun OutputResult(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Box(modifier = Modifier.weight(5f))
+        Box(modifier = Modifier.weight(6f))
         {
             OutputWinner(roundsViewModel)
         }
@@ -179,49 +170,44 @@ fun OutputResult(
 
 @Composable
 fun OutputWinner(roundsViewModel: RoundsViewModel){
-    Image(
-        painter = painterResource(R.drawable.winner),
-        contentDescription = stringResource(R.string.round),
-        contentScale = ContentScale.FillWidth,
-        modifier = Modifier
-            .width(380.dp)
-    )
-    
-    Spacer(modifier = Modifier.height(20.dp))
-
-    val winner = roundsViewModel.listOfTeams.maxBy { it.score}
-    Row(
-        modifier = Modifier
-            .size(350.dp, 90.dp)
-            .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(15.dp))
-            .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(15.dp))
-            .padding(20.dp, 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Column (
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = winner.title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onTertiary,
-            softWrap = true,
+        Image(
+            painter = painterResource(R.drawable.winner),
+            contentDescription = stringResource(R.string.round),
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
-                .width(250.dp)
+                .width(380.dp)
         )
 
-        Text(
-            text = winner.score.toString(),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onTertiary,
-            softWrap = false
-        )
-    }
+        Spacer(modifier = Modifier.height(40.dp))
 
-}
+            val winner = roundsViewModel.listOfTeams.maxBy { it.score}
+        Row(
+            modifier = Modifier
+                .size(350.dp, 90.dp)
+                .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(25.dp))
+                .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(25.dp))
+                .padding(20.dp, 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = winner.title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onTertiary,
+                softWrap = true,
+                modifier = Modifier
+                    .width(250.dp)
+            )
 
-@Preview(showBackground = true)
-@Composable
-fun ResultScreenPreview () {
-    VeryBadRapTheme {
-        ResultScreen(navigator = EmptyDestinationsNavigator)
+            Text(
+                text = winner.score.toString(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onTertiary,
+                softWrap = false
+            )
+        }
     }
 }

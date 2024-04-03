@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -69,8 +72,11 @@ fun RoundScreen(
 
         if (roundsViewModel.currentRound.value.difficult != 0) {
             LoadRound(navigator, roundsViewModel)
-        } else {
+        } else if (!roundsViewModel.isBeginning){
             roundsViewModel.createEvent(Event.StartGame)
+            LoadingScreen()
+        } else {
+            roundsViewModel.createEvent(Event.NextRound)
             LoadingScreen()
         }
     }
@@ -101,37 +107,39 @@ fun LoadRound(
     Spacer(modifier = Modifier.height(5.dp))
 
     val stateMusicButton = remember { mutableIntStateOf(0) }
+
     InsertAudio(roundsViewModel, stateMusicButton)
 
-    Spacer(modifier = Modifier.height(30.dp))
+    Spacer(modifier = Modifier.height(40.dp))
 
     val button = remember { mutableIntStateOf(R.drawable.blocked_ready_btn) }
     val enteredText = remember { mutableStateOf("") }
     val stateChecking = remember { mutableStateOf(false) }
-    if (!stateChecking.value)
+    if (!stateChecking.value) {
+        if (enteredText.value.isNotEmpty()) {
+            button.intValue = R.drawable.ready_btn
+        } else {
+            button.intValue = R.drawable.blocked_ready_btn
+        }
         InputText(enteredText)
-    else {
+    } else {
         val answerSheet = remember { mutableMapOf(0 to -1) }
         CheckingText(roundsViewModel, enteredText, answerSheet)
         stateMusicButton.intValue = 0
     }
 
-    Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(15.dp))
 
     ClickableButton(stateChecking, button, navigator)
 
-    if (enteredText.value.isNotEmpty()) {
-        button.intValue = R.drawable.ready_btn
-    } else {
-        button.intValue = R.drawable.blocked_ready_btn
-    }
+
 }
 
 @Composable
 fun OutputTeam(roundsViewModel: RoundsViewModel) {
 
     val team = roundsViewModel.currentTeam.value
-    if (team.title.isNotEmpty()) {
+    if (team.title != "Количество баллов") {
         Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = team.title,
@@ -144,32 +152,36 @@ fun OutputTeam(roundsViewModel: RoundsViewModel) {
         )
     }
     else {
-        Spacer(modifier = Modifier.height(35.dp))
+        Spacer(modifier = Modifier.height(60.dp))
     }
 }
 
 @Composable
 fun InsertAudio(
     roundsViewModel: RoundsViewModel,
-    stateMusicButton : MutableState<Int>
+    stateMusicButton : MutableIntState
 ){
     val context = LocalContext.current
 
     val titleAudio = roundsViewModel.currentSong.value.title
     val audioID = context.resources.getIdentifier(titleAudio, "raw", context.packageName)
+
     val mMediaPlayer = MediaPlayer.create(context, audioID)
+    val isPlaying = remember { mutableStateOf(false) }
 
     Box {
         Image(
-            painter = if (stateMusicButton.value < 3) painterResource(R.drawable.play_music_btn)
-            else painterResource(R.drawable.blocked_btn),
+            painter = if (stateMusicButton.intValue < 3 && !mMediaPlayer.isPlaying) painterResource(R.drawable.play_music_btn)
+            else painterResource(R.drawable.blocked_music_btn),
             contentDescription = "PLAY",
             modifier = Modifier
                 .size(80.dp)
                 .clickable {
-                    if (stateMusicButton.value < 3 && !mMediaPlayer.isPlaying) {
+                    if (stateMusicButton.intValue < 3) {
                         mMediaPlayer.start()
-                        stateMusicButton.value++
+                        stateMusicButton.intValue++
+                    } else {
+                        mMediaPlayer.release()
                     }
                 }
         )
@@ -198,7 +210,7 @@ fun InputText(
         ),
         shape = RoundedCornerShape(15.dp),
         modifier = Modifier
-            .size(360.dp, 290.dp)
+            .size(380.dp, 290.dp)
             .border(BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary), RoundedCornerShape(15.dp))
     )
 }
@@ -212,7 +224,8 @@ fun CheckingText(
 
     Surface(
         modifier = Modifier
-            .size(380.dp, 300.dp),
+            .heightIn(270.dp, 330.dp)
+            .width(380.dp),
         color = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(15.dp),
         border = BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary),
@@ -231,7 +244,7 @@ fun CheckingText(
                 while (i < textSong.length) {
 
                     var lengthOfWord = answerSheet[i]
-                    if (lengthOfWord != null) {
+                    if (lengthOfWord != null && lengthOfWord != 0) {
                         for (letterIndex in 1..lengthOfWord) {
                             text += textSong[i]
                             i++
@@ -248,7 +261,7 @@ fun CheckingText(
                         i.plus(lengthOfWord)
 
                     } else {
-                        while (lengthOfWord == null && i < textSong.length) {
+                        while ((lengthOfWord == null || lengthOfWord == 0) && i < textSong.length) {
                             text += textSong[i]
                             i++
                             lengthOfWord = answerSheet[i]
@@ -270,6 +283,7 @@ fun CheckingText(
             softWrap = true,
             modifier = Modifier
                 .padding(15.dp, 7.dp)
+                .verticalScroll(rememberScrollState())
         )
     }
 }
@@ -278,7 +292,8 @@ fun CheckingText(
 fun ClickableButton(
     stateChecking: MutableState<Boolean>,
     picture: MutableIntState,
-    navigator: DestinationsNavigator){
+    navigator: DestinationsNavigator
+){
     Box {
         Image(
             painter = painterResource(picture.intValue),

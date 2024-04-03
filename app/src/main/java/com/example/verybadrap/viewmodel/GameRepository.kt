@@ -2,7 +2,7 @@ package com.example.verybadrap.viewmodel
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.mutableStateOf
 import com.example.verybadrap.model.Round
 import com.example.verybadrap.model.Team
 import javax.inject.Inject
@@ -10,6 +10,11 @@ import javax.inject.Singleton
 
 @Singleton
 class GameRepository @Inject constructor() {
+    val ifFullListOfTeams = mutableStateOf(false)
+
+    val isBeginning = mutableStateOf(false)
+    val isEnding = mutableStateOf(false)
+
     var listOfTeams = mutableStateListOf<Team>()
     var listOfRounds = mutableStateListOf<Round>()
 

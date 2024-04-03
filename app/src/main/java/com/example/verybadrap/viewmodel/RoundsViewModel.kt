@@ -23,7 +23,10 @@ class RoundsViewModel @Inject constructor(
     private val gameRepository: GameRepository
 ) : ViewModel() {
 
+    val ifFullListOfTeams = gameRepository.ifFullListOfTeams
+    val isBeginning = gameRepository.isBeginning.value
     val listOfTeams = gameRepository.listOfTeams
+    val isEnding : State<Boolean> = gameRepository.isEnding
 
     private val _currentTeam = mutableStateOf(Team())
     val currentTeam : State<Team> = _currentTeam
@@ -37,8 +40,6 @@ class RoundsViewModel @Inject constructor(
     private val _currentTextOfSong = mutableStateOf("")
     val currentTextOfSong : MutableState<String> = _currentTextOfSong
 
-    private val _isEnding = mutableStateOf(false)
-    val isEnding : State<Boolean> = _isEnding
 
 
     fun createEvent(event: Event) {
@@ -49,13 +50,17 @@ class RoundsViewModel @Inject constructor(
         when (event) {
             is Event.AddTeam -> {
                 gameRepository.listOfTeams.add(Team(event.value))
+
+                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 3
             }
             is Event.DeleteTeam -> {
                 gameRepository.listOfTeams.remove(Team(event.value))
+
+                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 3
             }
             is Event.StartGame -> {
                 if (gameRepository.listOfTeams.isEmpty()) {
-                    gameRepository.listOfTeams.add(Team())
+                    gameRepository.listOfTeams.add(Team("Количество баллов"))
                 }
 
                 loadRounds(gameRepository.listOfTeams.size)
@@ -63,7 +68,10 @@ class RoundsViewModel @Inject constructor(
             }
             is Event.NextRound -> {
 
-                if (gameRepository.listOfTeams.size != 1 && gameRepository.numberTeam.intValue < gameRepository.listOfTeams.size) {
+                if (
+                    gameRepository.listOfTeams.size != 1 &&
+                    gameRepository.numberTeam.intValue < gameRepository.listOfTeams.size-1
+                    ) {
                     gameRepository.numberTeam.intValue++
                     gameRepository.numberSong.intValue++
                 } else {
@@ -79,15 +87,29 @@ class RoundsViewModel @Inject constructor(
                         gameRepository.listOfTeams[gameRepository.numberTeam.intValue]
                     _currentSong.value =
                         _currentRound.value.listSongs[gameRepository.numberSong.intValue]
-                } else
+                }
+                if (gameRepository.numberRound.intValue == 2)
                     createEvent(Event.FinishGame)
             }
             is Event.ReturnHome -> {
+                gameRepository.listOfRounds.clear()
                 gameRepository.listOfTeams.clear()
+
+                gameRepository.isBeginning.value = false
+                gameRepository.isEnding.value = false
+
+
+                gameRepository.numberRound.intValue = 0
+                gameRepository.numberSong.intValue = 0
+                gameRepository.numberTeam.intValue = 0
+
+                _currentRound.value = Round()
                 _currentTeam.value = Team()
+                _currentSong.value = Song()
+                _currentTextOfSong.value = ""
             }
             is Event.FinishGame -> {
-                _isEnding.value = true
+                gameRepository.isEnding.value = true
             }
         }
     }
@@ -96,8 +118,9 @@ class RoundsViewModel @Inject constructor(
     {
         viewModelScope.launch {
             gameRepository.listOfRounds.addAll(songServiceImpl.getRounds(countOfTeams))
-            _currentRound.value = gameRepository.listOfRounds[gameRepository.numberSong.intValue]
-            _currentSong.value = _currentRound.value.listSongs[gameRepository.numberRound.intValue]
+            _currentRound.value = gameRepository.listOfRounds[gameRepository.numberRound.intValue]
+            _currentSong.value = _currentRound.value.listSongs[gameRepository.numberSong.intValue]
+            gameRepository.isBeginning.value = true
         }
 
     }
@@ -107,32 +130,29 @@ class RoundsViewModel @Inject constructor(
         val path = "lyrics/" + _currentSong.value.title + ".txt"
         _currentTextOfSong.value = textServiceImpl.readingTextFile(path)
 
-        val listIndices = mutableMapOf<Int, Int>()
-        if (enteredText.isNotEmpty()) {
+        val listOfWords = enteredText.trim()
+            .split('.', ',', '—', ' ', '?')
+            .filter { it.isNotBlank() }
+            .toList()
 
-            val listOfWords = enteredText.trim()
-                .split('.', ',', '—', ' ', '?')
-                .filter { it.isNotBlank() }
+        val listIndices = mutableMapOf<Int, Int>()
+        var score = 0.0
+        for (word in listOfWords) {
+
+            val regex = """(?i)\b$word\b""".toRegex()
+            val foundIndices = regex.findAll(_currentTextOfSong.value)
+                .map { it.range.first }
                 .toList()
 
-            var score = 0.0
-            for (word in listOfWords) {
-
-                val regex = """(?i)\b$word\b""".toRegex()
-                val foundIndices = regex.findAll(_currentTextOfSong.value)
-                    .map { it.range.first }
-                    .toList()
-
-                if (foundIndices.isNotEmpty()) {
-                    for (index in foundIndices) {
-                        listIndices[index] = word.length
-                    }
-                    score += foundIndices.size
+            if (foundIndices.isNotEmpty()) {
+                for (index in foundIndices) {
+                    listIndices[index] = word.length
                 }
+                score += foundIndices.size
             }
-            val percentageOfGuessedWords = score / computeCountWordsInText() * 100
-            _currentTeam.value.score += percentageOfGuessedWords.roundToInt() * _currentSong.value.difficult
         }
+        val percentageOfGuessedWords = score / computeCountWordsInText() * 100
+        _currentTeam.value.score += percentageOfGuessedWords.roundToInt() * _currentSong.value.difficult
 
         return listIndices
     }

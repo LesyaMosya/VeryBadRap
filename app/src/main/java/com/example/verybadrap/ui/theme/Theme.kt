@@ -19,14 +19,18 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = Yellow,
     onSurface = YellowLight,
     onTertiary = Brown,
-    onPrimary = Highlighting
+    onPrimary = Highlighting,
+    onSecondaryContainer = Blocked,
+    onTertiaryContainer = BlockedLight
 )
 
 private val LightColorScheme = lightColorScheme(
     onBackground = Yellow,
     onSurface = YellowLight,
     onTertiary = Brown,
-    onPrimary = Highlighting
+    onPrimary = Highlighting,
+    onSecondaryContainer = Blocked,
+    onTertiaryContainer = BlockedLight
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
