@@ -1,5 +1,6 @@
 package com.example.verybadrap.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -73,7 +75,7 @@ fun TeamsScreen(
             Row {
                 ReturnHome(navigator)
                 Spacer(modifier = Modifier.width(70.dp))
-                NextButton(navigator)
+                NextButton(roundsViewModel, navigator)
             }
         }
     }
@@ -99,28 +101,16 @@ fun LoadTeams(
 fun AddTeam(
     roundsViewModel: RoundsViewModel
 ) {
+    val context = LocalContext.current
+
     val listTitle = listOf("СМЕШАРИКИ", "ФИКСИКИ", "ГУАПЧИЧИ")
     var i = 0
-
-    val colorBgd : Color
-    val colorBorder : Color
-    val plus : Int
-
-    if (!roundsViewModel.ifFullListOfTeams.value) {
-        colorBgd = MaterialTheme.colorScheme.onSurface
-        colorBorder = MaterialTheme.colorScheme.onTertiary
-        plus = R.drawable.add_team_btn
-    } else {
-        colorBgd = MaterialTheme.colorScheme.onSecondaryContainer
-        colorBorder = MaterialTheme.colorScheme.onTertiaryContainer
-        plus = R.drawable.add_team_blocked_btn
-    }
 
 
     Box(
         modifier = Modifier
-            .background(colorBgd, RoundedCornerShape(20.dp))
-            .border(4.dp, colorBorder, RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(20.dp))
+            .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(20.dp))
             .padding(10.dp, 5.dp)
             .size(350.dp, 80.dp)
             .clickable
@@ -129,12 +119,13 @@ fun AddTeam(
                     roundsViewModel.createEvent(Event.AddTeam(listTitle[i]))
                     if (i < 2) i++
                     else i = 0
-                }
+                } else
+                    Toast.makeText(context, R.string.count_teams, Toast.LENGTH_SHORT).show()
             },
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(plus),
+            painter = painterResource(R.drawable.add_team_btn),
             contentDescription = "NEXT",
             modifier = Modifier
                 .size(60.dp)
@@ -189,7 +180,11 @@ fun OutputTeams(
 }
 
 @Composable
-fun NextButton( navigator: DestinationsNavigator){
+fun NextButton(
+    roundsViewModel: RoundsViewModel,
+    navigator: DestinationsNavigator
+){
+    val context = LocalContext.current
     Box {
         Image(
             painter = painterResource(R.drawable.next_btn),
@@ -198,7 +193,10 @@ fun NextButton( navigator: DestinationsNavigator){
                 .size(80.dp)
                 .clickable
                 {
-                    navigator.navigate(RoundScreenDestination)
+                    if (roundsViewModel.listOfTeams.size < 2)
+                        Toast.makeText(context, R.string.warning_teams, Toast.LENGTH_SHORT).show()
+                    else
+                        navigator.navigate(RoundScreenDestination)
                 }
         )
     }

@@ -6,4 +6,7 @@
     <string name="exit_btn">Exit</string>
     <string name="round">Round</string>
     <string name="teams">Teams</string>
+    <string name="warning">" It is impossible to go back"</string>
+    <string name="warning_teams">You need to add teams</string>
+    <string name="count_teams">The maximum number of possible teams has been reached</string>
 </resources>

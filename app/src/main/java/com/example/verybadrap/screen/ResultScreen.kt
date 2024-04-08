@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,10 @@ fun ResultScreen(
     roundsViewModel: RoundsViewModel = hiltViewModel(),
     navigator: DestinationsNavigator
 ){
+    val context = LocalContext.current
+    val onBack = { displayToast(context) }
+
+    BackPressHandler(onBackPressed = onBack)
 
     if (roundsViewModel.isEnding.value)
         OutputResult(navigator, roundsViewModel)
@@ -91,10 +96,10 @@ fun OutputScore(
         for (team in teams) {
             Row(
                 modifier = Modifier
-                    .size(350.dp, 90.dp)
+                    .size(360.dp, 90.dp)
                     .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(20.dp))
                     .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(20.dp))
-                    .padding(20.dp, 5.dp),
+                    .padding(15.dp, 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -104,7 +109,7 @@ fun OutputScore(
                     color = MaterialTheme.colorScheme.onTertiary,
                     softWrap = true,
                     modifier = Modifier
-                        .width(250.dp)
+                        .width(260.dp)
                 )
 
                 Text(
@@ -186,10 +191,10 @@ fun OutputWinner(roundsViewModel: RoundsViewModel){
             val winner = roundsViewModel.listOfTeams.maxBy { it.score}
         Row(
             modifier = Modifier
-                .size(350.dp, 90.dp)
+                .size(360.dp, 90.dp)
                 .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(25.dp))
                 .border(4.dp, MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(25.dp))
-                .padding(20.dp, 5.dp),
+                .padding(15.dp, 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

@@ -7,4 +7,7 @@
     <string name="rules">Правила игры</string>
     <string name="round">Раунд</string>
     <string name="teams">Команды</string>
+    <string name="warning">Невозможно перейти назад</string>
+    <string name="warning_teams">Необходимо добавить команды для игры</string>
+    <string name="count_teams">Достингуто максимально возможное количество возможных команд</string>
 </resources>

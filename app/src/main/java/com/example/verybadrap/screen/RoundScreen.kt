@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.verybadrap.R
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.verybadrap.screen.destinations.HomeScreenDestination
 import com.example.verybadrap.screen.destinations.ResultScreenDestination
 import com.example.verybadrap.ui.theme.Brown
 import com.example.verybadrap.ui.theme.VeryBadRapTheme
@@ -104,13 +105,13 @@ fun LoadRound(
 
     OutputTeam(roundsViewModel)
 
-    Spacer(modifier = Modifier.height(5.dp))
+    Spacer(modifier = Modifier.height(15.dp))
 
     val stateMusicButton = remember { mutableIntStateOf(0) }
 
     InsertAudio(roundsViewModel, stateMusicButton)
 
-    Spacer(modifier = Modifier.height(40.dp))
+    Spacer(modifier = Modifier.height(20.dp))
 
     val button = remember { mutableIntStateOf(R.drawable.blocked_ready_btn) }
     val enteredText = remember { mutableStateOf("") }
@@ -132,6 +133,11 @@ fun LoadRound(
 
     ClickableButton(stateChecking, button, navigator)
 
+    val context = LocalContext.current
+    val onBack = {
+        displayToast(context)
+    }
+    BackPressHandler(onBackPressed = onBack)
 
 }
 
@@ -140,7 +146,7 @@ fun OutputTeam(roundsViewModel: RoundsViewModel) {
 
     val team = roundsViewModel.currentTeam.value
     if (team.title != "Количество баллов") {
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(25.dp))
         Text(
             text = team.title,
             style = MaterialTheme.typography.titleLarge,
@@ -167,7 +173,6 @@ fun InsertAudio(
     val audioID = context.resources.getIdentifier(titleAudio, "raw", context.packageName)
 
     val mMediaPlayer = MediaPlayer.create(context, audioID)
-    val isPlaying = remember { mutableStateOf(false) }
 
     Box {
         Image(
