@@ -47,6 +47,7 @@ fun ResultScreen(
 
     BackPressHandler(onBackPressed = onBack)
 
+
     if (roundsViewModel.isEnding.value)
         OutputResult(navigator, roundsViewModel)
     else
@@ -66,7 +67,8 @@ fun OutputRating(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(R.drawable.rating),
+            painter = if (roundsViewModel.listOfTeams.size == 1 ) painterResource(R.drawable.result)
+            else painterResource(id = R.drawable.rating),
             contentDescription = stringResource(R.string.round),
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
@@ -164,9 +166,14 @@ fun OutputResult(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Box(modifier = Modifier.weight(6f))
-        {
-            OutputWinner(roundsViewModel)
+        if (roundsViewModel.listOfTeams.size == 1) {
+            Box(modifier = Modifier.weight(6f)) {
+                OutputScore(roundsViewModel)
+            }
+        } else {
+            Box(modifier = Modifier.weight(6f)) {
+                OutputWinner(roundsViewModel)
+            }
         }
 
         ReturnHome(navigator)

@@ -164,7 +164,7 @@ class RoundsViewModel @Inject constructor(
                 score += foundIndices.size
             }
         }
-        val percentageOfGuessedWords = score / computeCountWordsInText() * 100
+        val percentageOfGuessedWords = score / computeCountWordsInText() * 10
         _currentTeam.value.score += percentageOfGuessedWords.roundToInt() * _currentSong.value.difficult
 
         return listIndices
