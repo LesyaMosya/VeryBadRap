@@ -21,7 +21,7 @@ class SongServiceImpl @Inject constructor(
         val listOfRounds = mutableListOf<Round>()
 
         for (i in 1..3) {
-            listOfSongs = repository.getListOfSongs(i).first()
+            listOfSongs = repository.getListOfSongs(i, countOfTeams).first()
             listOfRounds.add(Round(i, listOfSongs))
         }
 

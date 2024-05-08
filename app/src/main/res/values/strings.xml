@@ -9,4 +9,5 @@
     <string name="warning">" It is impossible to go back"</string>
     <string name="warning_teams">You need to add teams</string>
     <string name="count_teams">The maximum number of possible teams has been reached</string>
+    <string name="limit_word">The word limit has been reached</string>
 </resources>

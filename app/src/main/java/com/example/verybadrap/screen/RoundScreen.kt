@@ -2,6 +2,7 @@ package com.example.verybadrap.screen
 
 
 import android.media.MediaPlayer
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,8 +28,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,19 +45,17 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.verybadrap.R
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.verybadrap.screen.destinations.HomeScreenDestination
 import com.example.verybadrap.screen.destinations.ResultScreenDestination
 import com.example.verybadrap.ui.theme.Brown
-import com.example.verybadrap.ui.theme.VeryBadRapTheme
 import com.example.verybadrap.ui.theme.YellowLight
 import com.example.verybadrap.viewmodel.Event
 import com.example.verybadrap.viewmodel.RoundsViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.delay
 
 @Destination
 @Composable
@@ -108,21 +109,21 @@ fun LoadRound(
     Spacer(modifier = Modifier.height(15.dp))
 
     val stateMusicButton = remember { mutableIntStateOf(0) }
-
-    InsertAudio(roundsViewModel, stateMusicButton)
+    val stateChecking = remember { mutableStateOf(false) }
+    InsertAudio(roundsViewModel, stateMusicButton, stateChecking)
 
     Spacer(modifier = Modifier.height(20.dp))
 
-    val button = remember { mutableIntStateOf(R.drawable.blocked_ready_btn) }
+    val gameBtn = remember { mutableIntStateOf(R.drawable.blocked_ready_btn) }
     val enteredText = remember { mutableStateOf("") }
-    val stateChecking = remember { mutableStateOf(false) }
+
     if (!stateChecking.value) {
         if (enteredText.value.isNotEmpty()) {
-            button.intValue = R.drawable.ready_btn
+            gameBtn.intValue = R.drawable.ready_btn
         } else {
-            button.intValue = R.drawable.blocked_ready_btn
+            gameBtn.intValue = R.drawable.blocked_ready_btn
         }
-        InputText(enteredText)
+        InputText(roundsViewModel, enteredText)
     } else {
         val answerSheet = remember { mutableMapOf(0 to -1) }
         CheckingText(roundsViewModel, enteredText, answerSheet)
@@ -131,7 +132,7 @@ fun LoadRound(
 
     Spacer(modifier = Modifier.height(15.dp))
 
-    ClickableButton(stateChecking, button, navigator)
+    ClickableButton(stateChecking, gameBtn, navigator)
 
     val context = LocalContext.current
     val onBack = {
@@ -165,28 +166,43 @@ fun OutputTeam(roundsViewModel: RoundsViewModel) {
 @Composable
 fun InsertAudio(
     roundsViewModel: RoundsViewModel,
-    stateMusicButton : MutableIntState
+    stateMusicButton : MutableIntState,
+    stateChecking: MutableState<Boolean>
 ){
     val context = LocalContext.current
 
     val titleAudio = roundsViewModel.currentSong.value.title
     val audioID = context.resources.getIdentifier(titleAudio, "raw", context.packageName)
 
-    val mMediaPlayer = MediaPlayer.create(context, audioID)
+    val mMediaPlayer: MediaPlayer = remember {
+        MediaPlayer.create(context, audioID)
+    }
 
-    Box {
+    val flag = remember { mutableStateOf(true) }
+    SideEffect {
+        if (stateChecking.value && flag.value ) {
+            mMediaPlayer.stop()
+            mMediaPlayer.prepare()
+            flag.value = false
+        }
+    }
+
+
+        Box {
         Image(
-            painter = if (stateMusicButton.intValue < 3 && !mMediaPlayer.isPlaying) painterResource(R.drawable.play_music_btn)
+            painter = if (stateMusicButton.intValue < 3 || stateChecking.value) painterResource(R.drawable.play_music_btn)
             else painterResource(R.drawable.blocked_music_btn),
             contentDescription = "PLAY",
             modifier = Modifier
                 .size(80.dp)
                 .clickable {
-                    if (stateMusicButton.intValue < 3) {
-                        mMediaPlayer.start()
+                    if (mMediaPlayer.isPlaying) {
+                        mMediaPlayer.stop()
+                        mMediaPlayer.prepare()
+                    }
+                    if (stateMusicButton.intValue < 3 || stateChecking.value) {
                         stateMusicButton.intValue++
-                    } else {
-                        mMediaPlayer.release()
+                        mMediaPlayer.start()
                     }
                 }
         )
@@ -196,27 +212,44 @@ fun InsertAudio(
 
 @Composable
 fun InputText(
+    roundsViewModel: RoundsViewModel,
     enteredText: MutableState<String>
 ){
-
+    val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
+    val maxChar = 120
     OutlinedTextField(
         value = enteredText.value,
-        onValueChange = { enteredText.value = it },
+        onValueChange = {
+            if (it.length <= maxChar) enteredText.value = it
+            else Toast.makeText(context, R.string.limit_word, Toast.LENGTH_SHORT).show()
+        },
         interactionSource = interactionSource,
         enabled = true,
         singleLine = false,
+        maxLines = roundsViewModel.computeMaxLines(),
         textStyle = MaterialTheme.typography.displayMedium,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = YellowLight,
             focusedContainerColor = YellowLight,
             cursorColor = Brown,
-            focusedTextColor = Brown
+            focusedTextColor = Brown,
+            disabledContainerColor = YellowLight,
+            disabledTextColor = Brown
         ),
         shape = RoundedCornerShape(15.dp),
         modifier = Modifier
             .size(380.dp, 290.dp)
-            .border(BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary), RoundedCornerShape(15.dp))
+            .border(BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary), RoundedCornerShape(15.dp)),
+/*        supportingText = {
+            Text(
+                text = "${enteredText.value.length} / $maxChar",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End,
+                style = MaterialTheme.typography.labelSmall,
+                color = Brown
+            )
+        },*/
     )
 }
 
@@ -319,7 +352,7 @@ fun ClickableButton(
 }
 
 
-@Preview(showBackground = true, apiLevel = 33)
+/*@Preview(showBackground = true, apiLevel = 33)
 @Composable
 fun PreviewInputText(){
     VeryBadRapTheme {
@@ -328,4 +361,4 @@ fun PreviewInputText(){
         }
         InputText(enteredText)
     }
-}
+}*/

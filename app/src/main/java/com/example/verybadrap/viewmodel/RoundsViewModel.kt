@@ -87,6 +87,9 @@ class RoundsViewModel @Inject constructor(
                         gameRepository.listOfTeams[gameRepository.numberTeam.intValue]
                     _currentSong.value =
                         _currentRound.value.listSongs[gameRepository.numberSong.intValue]
+
+                    val path = "lyrics/" + _currentSong.value.title + ".txt"
+                    _currentTextOfSong.value = textServiceImpl.readingTextFile(path)
                 }
                 if (gameRepository.numberRound.intValue == 2)
                     createEvent(Event.FinishGame)
@@ -118,20 +121,30 @@ class RoundsViewModel @Inject constructor(
     {
         viewModelScope.launch {
             gameRepository.listOfRounds.addAll(songServiceImpl.getRounds(countOfTeams))
+
             _currentRound.value = gameRepository.listOfRounds[gameRepository.numberRound.intValue]
             _currentSong.value = _currentRound.value.listSongs[gameRepository.numberSong.intValue]
+
+            val path = "lyrics/" + _currentSong.value.title + ".txt"
+            _currentTextOfSong.value = textServiceImpl.readingTextFile(path)
+
             gameRepository.isBeginning.value = true
         }
 
     }
 
+    fun computeMaxLines() : Int {
+
+        val listOfWordsInText = _currentTextOfSong.value.lines()
+
+        return listOfWordsInText.size*2
+    }
+
     fun checkingText(enteredText: String) : MutableMap<Int, Int> {
 
-        val path = "lyrics/" + _currentSong.value.title + ".txt"
-        _currentTextOfSong.value = textServiceImpl.readingTextFile(path)
-
+        val regexForEnteredText = "[^а-яА-Яa-zA-Z-]".toRegex()
         val listOfWords = enteredText.trim()
-            .split('.', ',', '—', ' ', '?')
+            .split(regexForEnteredText)
             .filter { it.isNotBlank() }
             .toList()
 
@@ -139,8 +152,8 @@ class RoundsViewModel @Inject constructor(
         var score = 0.0
         for (word in listOfWords) {
 
-            val regex = """(?i)\b$word\b""".toRegex()
-            val foundIndices = regex.findAll(_currentTextOfSong.value)
+            val regexForWords = """(?i)\b$word\b""".toRegex()
+            val foundIndices = regexForWords.findAll(_currentTextOfSong.value)
                 .map { it.range.first }
                 .toList()
 

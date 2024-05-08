@@ -23,6 +23,6 @@ interface SongDao {
     @Query("SELECT * FROM Song")
     fun getAllSongs() : List<Song>
 
-    @Query("SELECT * FROM Song WHERE difficult= :difficult")
-    fun getListOfSongs(difficult: Int): Flow<List<Song>>
+    @Query("SELECT * FROM Song WHERE difficult= :difficult ORDER BY RANDOM() LIMIT :limit")
+    fun getListOfSongs(difficult: Int, limit: Int): Flow<List<Song>>
 }

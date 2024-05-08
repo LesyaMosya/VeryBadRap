@@ -12,7 +12,7 @@ class DatabaseRepository @Inject constructor (private val songDao: SongDao) {
 
     // Room executes all queries on a separate thread.
     // Observed Flow will notify the observer when the data has changed.
-    fun getListOfSongs(difficult: Int) = songDao.getListOfSongs(difficult)
+    fun getListOfSongs(difficult: Int, limit: Int) = songDao.getListOfSongs(difficult, limit)
 
 
     // By default Room runs suspend queries off the main thread, therefore, we don't need to
