@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    @Singleton // Tell Dagger-Hilt to create a singleton accessible everywhere in ApplicationCompenent (i.e. everywhere in the application)
+    @Singleton
     @Provides
     fun provideAppDataBase( @ApplicationContext context: Context) : AppDatabase
     {
@@ -24,10 +24,9 @@ object DatabaseModule {
             "very_bad_rap"
         ).createFromAsset("database/VeryBadRap.db")
             .build()
-    } // The reason we can construct a database for the repo
+    }
 
     @Singleton
     @Provides
-    fun provideSongDao(db: AppDatabase) = db.getSongDao() // The reason we can implement a Dao for the database
-
+    fun provideSongDao(db: AppDatabase) = db.getSongDao()
 }

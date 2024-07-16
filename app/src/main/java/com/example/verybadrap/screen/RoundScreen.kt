@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
@@ -121,7 +122,7 @@ fun LoadRound(
         } else {
             gameBtn.intValue = R.drawable.blocked_ready_btn
         }
-        InputText(roundsViewModel, enteredText)
+        InputText(enteredText)
     } else {
         val answerSheet = remember { mutableMapOf(0 to -1) }
         CheckingText(roundsViewModel, enteredText, answerSheet)
@@ -184,6 +185,11 @@ fun InsertAudio(
             flag.value = false
         }
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            mMediaPlayer.stop()
+        }
+    }
 
 
         Box {
@@ -210,7 +216,6 @@ fun InsertAudio(
 
 @Composable
 fun InputText(
-    roundsViewModel: RoundsViewModel,
     enteredText: MutableState<String>
 ){
     val context = LocalContext.current
@@ -225,7 +230,6 @@ fun InputText(
         interactionSource = interactionSource,
         enabled = true,
         singleLine = false,
-        maxLines = roundsViewModel.computeMaxLines(),
         textStyle = MaterialTheme.typography.displayMedium,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = YellowLight,
@@ -238,7 +242,10 @@ fun InputText(
         shape = RoundedCornerShape(15.dp),
         modifier = Modifier
             .size(380.dp, 290.dp)
-            .border(BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary), RoundedCornerShape(15.dp)),
+            .border(
+                BorderStroke(4.dp, MaterialTheme.colorScheme.onTertiary),
+                RoundedCornerShape(15.dp)
+            ),
 /*        supportingText = {
             Text(
                 text = "${enteredText.value.length} / $maxChar",

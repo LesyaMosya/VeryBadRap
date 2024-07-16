@@ -46,32 +46,32 @@ class RoundsViewModel @Inject constructor(
         onEvent(event)
     }
 
+    // Обработка событий
     private fun onEvent(event: Event) {
         when (event) {
+            // Добавление команды
             is Event.AddTeam -> {
                 gameRepository.listOfTeams.add(Team(event.value))
-
-                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 3
+                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 4
             }
+            // Удаление команды
             is Event.DeleteTeam -> {
                 gameRepository.listOfTeams.remove(Team(event.value))
-
-                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 3
+                gameRepository.ifFullListOfTeams.value = gameRepository.listOfTeams.size == 4
             }
+            // Начало игры
             is Event.StartGame -> {
                 if (gameRepository.listOfTeams.isEmpty()) {
                     gameRepository.listOfTeams.add(Team("Количество баллов"))
                 }
-
                 loadRounds(gameRepository.listOfTeams.size)
                 _currentTeam.value = gameRepository.listOfTeams[gameRepository.numberTeam.intValue]
             }
+            // Переход в следующий раунд
             is Event.NextRound -> {
-
-                if (
-                    gameRepository.listOfTeams.size != 1 &&
-                    gameRepository.numberTeam.intValue < gameRepository.listOfTeams.size-1
-                    ) {
+                if ( gameRepository.listOfTeams.size != 1 &&
+                    gameRepository.numberTeam.intValue < gameRepository.listOfTeams.size-1 )
+                {
                     gameRepository.numberTeam.intValue++
                     gameRepository.numberSong.intValue++
                 } else {
@@ -79,7 +79,7 @@ class RoundsViewModel @Inject constructor(
                     gameRepository.numberTeam.intValue = 0
                     gameRepository.numberSong.intValue = 0
                 }
-
+                // Переход на следующий раунд
                 if (gameRepository.numberRound.intValue < 3) {
                     _currentRound.value =
                         gameRepository.listOfRounds[gameRepository.numberRound.intValue]
@@ -91,9 +91,9 @@ class RoundsViewModel @Inject constructor(
                     val path = "lyrics/" + _currentSong.value.title + ".txt"
                     _currentTextOfSong.value = textServiceImpl.readingTextFile(path)
                 }
-                if (gameRepository.numberRound.intValue == 2)
-                    createEvent(Event.FinishGame)
+                if (gameRepository.numberRound.intValue == 2) createEvent(Event.FinishGame)
             }
+            // Вернуться в главное меню
             is Event.ReturnHome -> {
                 gameRepository.listOfRounds.clear()
                 gameRepository.listOfTeams.clear()
@@ -111,12 +111,14 @@ class RoundsViewModel @Inject constructor(
                 _currentSong.value = Song()
                 _currentTextOfSong.value = ""
             }
+            // Конец игры
             is Event.FinishGame -> {
                 gameRepository.isEnding.value = true
             }
         }
     }
 
+    // Начальная загрузка данных по игре
     private fun loadRounds(countOfTeams : Int)
     {
         viewModelScope.launch {
@@ -133,13 +135,7 @@ class RoundsViewModel @Inject constructor(
 
     }
 
-    fun computeMaxLines() : Int {
-
-        val listOfWordsInText = _currentTextOfSong.value.lines()
-
-        return listOfWordsInText.size*2
-    }
-
+    // Проверка текста, введенного игроками
     fun checkingText(enteredText: String) : MutableMap<Int, Int> {
 
         val regexForEnteredText = "[^а-яА-Яa-zA-Z-]".toRegex()
@@ -170,6 +166,7 @@ class RoundsViewModel @Inject constructor(
         return listIndices
     }
 
+    // Подсчет слов в тексте композиции
     private fun computeCountWordsInText() : Int {
 
         var words = _currentTextOfSong.value.split("?", " ", ".", ",", "—")

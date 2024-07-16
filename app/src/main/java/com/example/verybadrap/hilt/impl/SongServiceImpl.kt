@@ -22,9 +22,6 @@ class SongServiceImpl @Inject constructor(
             listOfSongs = repository.getListOfSongs(i, countOfTeams).first()
             listOfRounds.add(Round(i, listOfSongs))
         }
-
         return listOfRounds
     }
-
-
 }

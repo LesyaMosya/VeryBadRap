@@ -102,7 +102,7 @@ fun AddTeam(
 ) {
     val context = LocalContext.current
 
-    val listTitle = listOf("СМЕШАРИКИ", "ФИКСИКИ", "ГУАПЧИЧИ")
+    val listTitle = listOf("СМЕШАРИКИ", "ФИКСИКИ", "ГУАПЧИЧИ", "ОЗОРНЫЕ БЕЛКИ", "КАМУШКИ", "РЭПЕРЫ")
     var i = 0
 
 
